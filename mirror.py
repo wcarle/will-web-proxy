@@ -192,21 +192,20 @@ class HomeHandler(BaseHandler):
 
 
 class MirrorHandler(BaseHandler):
-  def get(self):
+  def get(self, base_url):
     if self.is_recursive_request():
       return
 
-    #if base_url is None
-    base_url = ""
+    assert base_url
 
     # Log the user-agent and referrer, to see who is linking to us.
     logging.debug('User-Agent = "%s", Referrer = "%s"',
                   self.request.user_agent,
                   self.request.referer)
     logging.debug('Base_url = "%s", url = "%s"', base_url, self.request.url)
-    logging.info("BASEEEEE" + base_url);
+
     translated_address = self.get_relative_url()[1:]  # remove leading /
-    mirrored_url = HTTP_PREFIX + "www.unf.edu/" + translated_address
+    mirrored_url = HTTP_PREFIX + translated_address
 
     # Use sha256 hash instead of mirrored url for the key name, since key
     # names can only be 500 bytes in length; URLs may be up to 2KB.
@@ -215,7 +214,7 @@ class MirrorHandler(BaseHandler):
 
     content = MirroredContent.get_by_key_name(key_name)
     cache_miss = False
-    if True: #content is None:
+    if content is None:
       logging.debug("Cache miss")
       cache_miss = True
       content = MirroredContent.fetch_and_store(key_name, base_url,
@@ -235,8 +234,8 @@ class MirrorHandler(BaseHandler):
 ###############################################################################
 
 app = webapp2.WSGIApplication([
-  (r"/", MirrorHandler),
+  (r"/", HomeHandler),
   (r"/main", HomeHandler),
-  (r"/.*", MirrorHandler),
+  (r"/([^/]+).*", MirrorHandler),
   (r"/warmup", WarmupHandler),
 ], debug=DEBUG)

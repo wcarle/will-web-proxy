@@ -92,21 +92,15 @@ REPLACEMENT_REGEXES = [
 ################################################################################
 
 def TransformContent(base_url, accessed_url, content):
-  append = "<script>var suggestions = []; ";
-  with open("activeanalytics.js", "r") as script:
-    append += script.read()
-  append += "</script>"
-  content = content.replace("http://www.unf.edu", "")
-  content = content.replace("</body>", append + " </body>")
-  # url_obj = urlparse.urlparse(accessed_url)
-  # accessed_dir = os.path.dirname(url_obj.path)
-  # if not accessed_dir.endswith("/"):
-  #   accessed_dir += "/"
+  url_obj = urlparse.urlparse(accessed_url)
+  accessed_dir = os.path.dirname(url_obj.path)
+  if not accessed_dir.endswith("/"):
+    accessed_dir += "/"
 
-  # for pattern, replacement in REPLACEMENT_REGEXES:
-  #   fixed_replacement = replacement % {
-  #     "base": base_url,
-  #     "accessed_dir": accessed_dir,
-  #   }
-  #   content = re.sub(pattern, fixed_replacement, content)
+  for pattern, replacement in REPLACEMENT_REGEXES:
+    fixed_replacement = replacement % {
+      "base": base_url,
+      "accessed_dir": accessed_dir,
+    }
+    content = re.sub(pattern, fixed_replacement, content)
   return content
